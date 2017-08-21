@@ -1,0 +1,10 @@
+
+alias ls "ls -laGho --color"
+alias ipython "python3 -m IPython"
+alias gitls "git log --decorate --graph --date-order --oneline"
+alias gitlst "gitls --pretty=format:'%h%x09%an%x09%ad%x09%s'"
+alias ctags "/usr/local/bin/ctags"
+alias em "emacsclient -c --no-wait --alternate-editor=''"
+alias emn "emacsclient -c -nw --alternate-editor=''"
+alias d "docker"
+alias dc "docker-compose"

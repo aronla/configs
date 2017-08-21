@@ -1,0 +1,9 @@
+set --export PATH /Library/PostgreSQL/9.5/bin/ /usr/local/bin/apache-ant-1.9.7/bin $PATH
+set PATH /usr/local/homebrew $PATH
+set PATH /Library/PostgreSQL/9.5/bin $PATH
+set PATH /usr/local/opt/coreutils/libexec/gnubin $PATH
+set PATH /usr/local/bin/scala-2.12.1/bin $PATH
+set SCALA_HOME /usr/local/bin/scala-2.12.1/
+
+set -g theme_title_use_abbreviated_path no
+set -g fish_prompt_pwd_dir_length 0
