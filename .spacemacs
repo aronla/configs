@@ -33,6 +33,7 @@ values."
    '(
      csv
      html
+     ipython-notebook
      markdown
      sql
      shell-scripts
@@ -51,10 +52,11 @@ values."
      themes-megapack
      ;; better-defaults
      emacs-lisp
-     git 
+     git
      java
      ;; markdown
-     org
+     (org :variables
+          org-enable-reveal-js-support t)
      (shell :variables
             shell-default-height 30
             shell-default-position 'bottom)
@@ -66,12 +68,13 @@ values."
    ;; wrapped in a layer. If you need some configuration for these
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
-   dotspacemacs-additional-packages '()
+   dotspacemacs-additional-packages '(ox-reveal)
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
    ;; A list of packages that will not be installed and loaded.
    dotspacemacs-excluded-packages '(evil-search-highlight-persist
-                                    smartparens)
+                                    smartparens
+                                    org-bullets)
    ;; Defines the behaviour of Spacemacs when installing packages.
    ;; Possible values are `used-only', `used-but-keep-unused' and `all'.
    ;; `used-only' installs only explicitly used packages and uninstall any
@@ -144,6 +147,7 @@ values."
                          zenburn
                          spacemacs-light
                          spacemacs-dark
+                         atom-one-dark-theme
                          )
    ;; If non nil the cursor color matches the state color in GUI Emacs.
    dotspacemacs-colorize-cursor-according-to-state t
@@ -317,24 +321,23 @@ layers configuration.
 This is the place where most of your configurations should be done. Unless it is
 explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
-
   (defun foo () 5)
   ;; KEYBOARD RELATED
   ;; (mapc 'global-unset-key '([left] [right] [up] [down]))
-  (define-key evil-normal-state-map [left] 'foo)
-  (define-key evil-normal-state-map [right] 'foo)
-  (define-key evil-normal-state-map [up] 'foo)
-  (define-key evil-normal-state-map [down] 'foo)
+  ;; (define-key evil-normal-state-map [left] 'foo)
+  ;; (define-key evil-normal-state-map [right] 'foo)
+  ;; (define-key evil-normal-state-map [up] 'foo)
+  ;; (define-key evil-normal-state-map [down] 'foo)
 
-  (define-key evil-insert-state-map [left] 'foo)
-  (define-key evil-insert-state-map [right] 'foo)
-  (define-key evil-insert-state-map [up] 'foo)
-  (define-key evil-insert-state-map [down] 'foo)
+  ;; (define-key evil-insert-state-map [left] 'foo)
+  ;; (define-key evil-insert-state-map [right] 'foo)
+  ;; (define-key evil-insert-state-map [up] 'foo)
+  ;; (define-key evil-insert-state-map [down] 'foo)
 
-  (define-key evil-visual-state-map [left] 'foo)
-  (define-key evil-visual-state-map [right] 'foo)
-  (define-key evil-visual-state-map [up] 'foo)
-  (define-key evil-visual-state-map [down] 'foo)
+  ;; (define-key evil-visual-state-map [left] 'foo)
+  ;; (define-key evil-visual-state-map [right] 'foo)
+  ;; (define-key evil-visual-state-map [up] 'foo)
+  ;; (define-key evil-visual-state-map [down] 'foo)
   (setq-default evil-escape-delay 0.2)
 
   (define-key evil-normal-state-map (kbd "C-i") 'evil-jump-forward)
@@ -351,32 +354,32 @@ you should place your code here."
   (setq neo-theme 'ascii)
 
   ;; PYTHON STUFF
-  (setq python-shell-interpreter "ipython"
+  (setq python-shell-interpreter "python3"
         python-shell-interpreter-args "-i")
-  (with-eval-after-load 'python
-    (defun python-shell-completion-native-try ()
-      "Return non-nil if can trigger native completion."
-      (let ((python-shell-completion-native-enable t)
-            (python-shell-completion-native-output-timeout
-             python-shell-completion-native-try-output-timeout))
-        (python-shell-completion-native-get-completions
-         (get-buffer-process (current-buffer))
-         nil "_"))))
+  ;; (with-eval-after-load 'python
+  ;;   (defun python-shell-completion-native-try ()
+  ;;     "Return non-nil if can trigger native completion."
+  ;;     (let ((python-shell-completion-native-enable t)
+  ;;           (python-shell-completion-native-output-timeout
+  ;;            python-shell-completion-native-try-output-timeout))
+  ;;       (python-shell-completion-native-get-completions
+  ;;        (get-buffer-process (current-buffer))
+  ;;        nil "_"))))
   (defvaralias 'flycheck-python-pylint-executable 'python-shell-interpreter)
 
   ;; UNDO TREE
-  (setq undo-tree-auto-save-history nil
-        undo-tree-history-directory-alist
-        `(("." . ,(concat spacemacs-cache-directory "undo"))))
   (unless (file-exists-p (concat spacemacs-cache-directory "undo"))
     (make-directory (concat spacemacs-cache-directory "undo")))
+  (setq undo-tree-auto-save-history t
+        undo-tree-history-directory-alist
+        `(("." . ,(concat spacemacs-cache-directory "undo"))))
+  (setq undo-tree-visualizer-relative-timestamps nil)
 
   ;; VARIOUS
   (setq dired-listing-switches "-alh")
   (setq-default evil-search-module 'evil-search)
-  ;; (spacemacs/toggle-smartparens-globally-off)
 
-  
+
   ;; GETS RID OF MENU BAR IN SOME MODES
   (defun contextual-menubar (&optional frame)
     (interactive)
@@ -386,7 +389,50 @@ you should place your code here."
 
   (setq projectile-enable-caching t)
 
-  (setq org-agenda-files (list "~/Documents/org/daily_struggle.org"))
+  ;; targets include this file and any file contributing to the agenda, up to 9 levels deep
+  (setq org-refile-targets '((org-agenda-files :maxlevel . 9)
+        (nil :maxlevel . 3)))
+
+  (setq org-default-notes-file "~/org/refile.org")
+
+  (defun buffer-mode (buffer-or-string)
+    "Returns the major mode associated with a buffer."
+    (with-current-buffer buffer-or-string
+      major-mode))
+
+  (defun if-org-get-name(default-path)
+    (if ( string-equal (buffer-mode (buffer-name)) "org-mode" )
+        (buffer-file-name)
+        default-path
+      )
+    )
+
+  (require 'helm-bookmark)
+  (setq org-capture-templates
+        (quote (("t" "todo" entry (file "~/org/todo.org")
+                 "* TODO %?\n%T\n" :empty-lines 1)
+                ;; ("e" "experiment" entry (file+headline "~/org/experiments.org" "refile")
+                ;; "* Experiment %U :experiment: \n** Name: %^{name| }\n** Tag: %^{tag| }\n** ID: %^{id| } \n** Description: \n %? \n** Results: \n" )
+                ;; ("e" "experiment" entry (file (lambda () (buffer-file-name)))
+                ("e" "experiment" entry (file (lambda () (if-org-get-name "~/org/experiments.org")))
+                ;; ("e" "experiment" entry (file "~/org/experiments.org")
+                 "* Experiment %U :experiment: \n** Name: %^{name| }\n** Tag: %^{tag| }\n** ID: %^{id| } \n** Description: \n %? \n** Results: \n" )
+                ("n" "note" entry (file "~/org/notes.org")
+                 "* %? :NOTE:\n%T\n" )
+                ("j" "Journal" entry (file+datetree "~/org/journal.org")
+                 "* %T\n%?\n" )
+                ("m" "Meeting" entry (file "~/org/meetings.org")
+                 "* MEETING with %^{participants} :MEETING:%T\n%?"  ))))
+
+  (setq org-outline-path-complete-in-steps nil)
+  ;; (setq org-refile-use-outline-path t)
+  (setq org-refile-use-outline-path 'file)
+
+  ;; auto save on refile
+  (add-hook 'org-after-refile-insert-hook
+            (lambda ()
+              (add-hook 'auto-save-hook 'org-save-all-org-buffers nil t)
+              (auto-save-mode)))
 
 )
 
@@ -398,13 +444,45 @@ you should place your code here."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(evil-want-Y-yank-to-eol nil)
+ '(fci-rule-color "#383838" t)
+ '(nrepl-message-colors
+   (quote
+    ("#CC9393" "#DFAF8F" "#F0DFAF" "#7F9F7F" "#BFEBBF" "#93E0E3" "#94BFF3" "#DC8CC3")))
+ '(org-agenda-files
+   (quote
+    ("~/org/meetings.org" "~/org/research_days.org" "~/org/main.org" "~/org/todo.org")))
  '(package-selected-packages
    (quote
-    (multiple-cursors request flycheck sbt-mode scala-mode diminish packed avy anaconda-mode eclim yasnippet company smartparens magit magit-popup highlight evil git-commit with-editor helm helm-core async alert log4e projectile hydra f js2-mode s winum solarized-theme madhat2r-theme fuzzy csv-mode web-mode tagedit slim-mode scss-mode sass-mode pug-mode less-css-mode helm-css-scss haml-mode emmet-mode company-web web-completion-data mmm-mode markdown-toc markdown-mode gh-md zonokai-theme zenburn-theme zen-and-art-theme yapfify yaml-mode xterm-color ws-butler window-numbering which-key web-beautify volatile-highlights vimrc-mode vi-tilde-fringe uuidgen use-package underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme tronesque-theme toxi-theme toc-org tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme sql-indent spacemacs-theme spaceline spacegray-theme soothe-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme smeargle shell-pop seti-theme reverse-theme restart-emacs rainbow-delimiters railscasts-theme quelpa pyvenv pytest pyenv-mode py-isort purple-haze-theme professional-theme popwin planet-theme pip-requirements phoenix-dark-pink-theme phoenix-dark-mono-theme persp-mode pcre2el pastels-on-dark-theme paradox orgit organic-green-theme org-projectile org-present org-pomodoro org-plus-contrib org-download org-bullets open-junk-file omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noflet noctilux-theme niflheim-theme neotree naquadah-theme mustang-theme multi-term move-text monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme magit-gitflow macrostep lush-theme lorem-ipsum livid-mode live-py-mode linum-relative link-hint light-soap-theme json-mode js2-refactor js-doc jbeans-theme jazz-theme ir-black-theme insert-shebang inkpot-theme info+ indent-guide ido-vertical-mode hy-mode hungry-delete htmlize hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt heroku-theme hemisu-theme help-fns+ helm-themes helm-swoop helm-pydoc helm-projectile helm-mode-manager helm-make helm-gitignore helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme google-translate golden-ratio gnuplot gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ gandalf-theme flyspell-correct-helm flycheck-pos-tip flx-ido flatui-theme flatland-theme fish-mode firebelly-theme fill-column-indicator farmhouse-theme fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu espresso-theme eshell-z eshell-prompt-extras esh-help ensime elisp-slime-nav dumb-jump dracula-theme django-theme diff-hl define-word darktooth-theme darkokai-theme darkmine-theme darkburn-theme dakrone-theme dactyl-mode cython-mode cyberpunk-theme company-tern company-statistics company-shell company-emacs-eclim company-anaconda column-enforce-mode color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized coffee-mode clues-theme clean-aindent-mode cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme auto-yasnippet auto-highlight-symbol auto-dictionary auto-compile apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes aggressive-indent afternoon-theme adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
+    (ein request-deferred websocket deferred ox-reveal powerline spinner org-category-capture gntp skewer-mode simple-httpd json-snatcher json-reformat parent-mode gitignore-mode fringe-helper git-gutter+ git-gutter flyspell-correct pos-tip pkg-info epl flx iedit anzu goto-chg undo-tree autothemer dash-functional tern bind-map bind-key pythonic dash auto-complete popup atom-one-dark-theme multiple-cursors request flycheck sbt-mode scala-mode diminish packed avy anaconda-mode eclim yasnippet company smartparens magit magit-popup highlight evil git-commit with-editor helm helm-core async alert log4e projectile hydra f js2-mode s winum solarized-theme madhat2r-theme fuzzy csv-mode web-mode tagedit slim-mode scss-mode sass-mode pug-mode less-css-mode helm-css-scss haml-mode emmet-mode company-web web-completion-data mmm-mode markdown-toc markdown-mode gh-md zonokai-theme zenburn-theme zen-and-art-theme yapfify yaml-mode xterm-color ws-butler window-numbering which-key web-beautify volatile-highlights vimrc-mode vi-tilde-fringe uuidgen use-package underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme tronesque-theme toxi-theme toc-org tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme sql-indent spacemacs-theme spaceline spacegray-theme soothe-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme smeargle shell-pop seti-theme reverse-theme restart-emacs rainbow-delimiters railscasts-theme quelpa pyvenv pytest pyenv-mode py-isort purple-haze-theme professional-theme popwin planet-theme pip-requirements phoenix-dark-pink-theme phoenix-dark-mono-theme persp-mode pcre2el pastels-on-dark-theme paradox orgit organic-green-theme org-projectile org-present org-pomodoro org-plus-contrib org-download org-bullets open-junk-file omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noflet noctilux-theme niflheim-theme neotree naquadah-theme mustang-theme multi-term move-text monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme magit-gitflow macrostep lush-theme lorem-ipsum livid-mode live-py-mode linum-relative link-hint light-soap-theme json-mode js2-refactor js-doc jbeans-theme jazz-theme ir-black-theme insert-shebang inkpot-theme info+ indent-guide ido-vertical-mode hy-mode hungry-delete htmlize hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt heroku-theme hemisu-theme help-fns+ helm-themes helm-swoop helm-pydoc helm-projectile helm-mode-manager helm-make helm-gitignore helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme google-translate golden-ratio gnuplot gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ gandalf-theme flyspell-correct-helm flycheck-pos-tip flx-ido flatui-theme flatland-theme fish-mode firebelly-theme fill-column-indicator farmhouse-theme fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu espresso-theme eshell-z eshell-prompt-extras esh-help ensime elisp-slime-nav dumb-jump dracula-theme django-theme diff-hl define-word darktooth-theme darkokai-theme darkmine-theme darkburn-theme dakrone-theme dactyl-mode cython-mode cyberpunk-theme company-tern company-statistics company-shell company-emacs-eclim company-anaconda column-enforce-mode color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized coffee-mode clues-theme clean-aindent-mode cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme auto-yasnippet auto-highlight-symbol auto-dictionary auto-compile apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes aggressive-indent afternoon-theme adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
+ '(pdf-view-midnight-colors (quote ("#DCDCCC" . "#383838")))
  '(safe-local-variable-values
    (quote
     ((eval setq python-shell-extra-pythonpaths
-           (list "/Users/aron/programming/kraken/rest_server/"))))))
+           (list "/Users/aron/programming/kraken/rest_server/" "sandbox/data_utils/"))
+     (eval setq python-shell-extra-pythonpaths
+           (list "/Users/aron/programming/kraken/rest_server/")))))
+ '(vc-annotate-background "#2B2B2B")
+ '(vc-annotate-color-map
+   (quote
+    ((20 . "#BC8383")
+     (40 . "#CC9393")
+     (60 . "#DFAF8F")
+     (80 . "#D0BF8F")
+     (100 . "#E0CF9F")
+     (120 . "#F0DFAF")
+     (140 . "#5F7F5F")
+     (160 . "#7F9F7F")
+     (180 . "#8FB28F")
+     (200 . "#9FC59F")
+     (220 . "#AFD8AF")
+     (240 . "#BFEBBF")
+     (260 . "#93E0E3")
+     (280 . "#6CA0A3")
+     (300 . "#7CB8BB")
+     (320 . "#8CD0D3")
+     (340 . "#94BFF3")
+     (360 . "#DC8CC3"))))
+ '(vc-annotate-very-old-color "#DC8CC3"))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
