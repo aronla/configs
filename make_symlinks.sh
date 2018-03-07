@@ -26,11 +26,21 @@ function create_symlink {
    fi
 }
 
+function create_directory {
+   if [ -e "$1" ]
+   then
+       echo directory $1 already exists
+   else
+       mkdir $1
+   fi
+}
+
 # fish
 move_to_backup ~/.config/fish/config.fish
 move_to_backup ~/.fish_aliases
 move_to_backup ~/.fish_variables
 move_to_backup ~/.fish_local_variables
+create_directory ~/.config/fish/functions/
 move_to_backup ~/.config/fish/functions/fish_user_key_bindings.fish
 
 create_symlink ~/configs/config.fish ~/.config/fish/config.fish
