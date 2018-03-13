@@ -58,3 +58,8 @@ create_symlink ~/configs/.spacemacs ~/.spacemacs
 move_to_backup ~/.tmux.conf
 
 create_symlink ~/configs/.tmux.conf ~/.tmux.conf
+
+# vim
+move_to_backup ~/.vimrc
+
+create_symlink ~/configs/.vimrc ~/.vimrc
