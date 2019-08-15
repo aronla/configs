@@ -30,7 +30,7 @@ values."
    dotspacemacs-configuration-layer-path '()
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
-   '(
+   '(rust
      csv
      html
      ipython-notebook
@@ -40,20 +40,25 @@ values."
      vimscript
      javascript
      yaml
+     auto-completion
+     latex
+     lsp
+     ;; (python :variables python-backend 'lsp)
      python
      scala
+     (java :variables java-backend 'lsp)
+     dap
      ;; ----------------------------------------------------------------
      ;; Example of useful layers you may want to use right away.
      ;; Uncomment some layer names and press <SPC f e R> (Vim style) or
      ;; <M-m f e R> (Emacs style) to install them.
      ;; ----------------------------------------------------------------
      helm
-     auto-completion
      ;; themes-megapack
      ;; better-defaults
      emacs-lisp
      git
-     java
+     bibtex
      ;; markdown
      (org :variables
           org-enable-reveal-js-support t)
@@ -63,17 +68,21 @@ values."
      spell-checking
      syntax-checking
      version-control
+     zotero
      )
    ;; List of additional packages that will be installed without being
    ;; wrapped in a layer. If you need some configuration for these
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
-   dotspacemacs-additional-packages '(ox-reveal)
+   dotspacemacs-additional-packages '(ox-reveal
+                                      atom-dark-theme)
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
    ;; A list of packages that will not be installed and loaded.
    dotspacemacs-excluded-packages '(evil-search-highlight-persist
                                     smartparens
+                                    importmagic
+                                    undo-tree
                                     org-bullets)
    ;; Defines the behaviour of Spacemacs when installing packages.
    ;; Possible values are `used-only', `used-but-keep-unused' and `all'.
@@ -143,7 +152,7 @@ values."
    ;; Press <SPC> T n to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
    dotspacemacs-themes '(
-                         atom-one-dark-theme
+                         atom-dark
                          cyberpunk
                          zenburn
                          spacemacs-light
@@ -208,7 +217,7 @@ values."
    ;; auto-save the file in-place, `cache' to auto-save the file to another
    ;; file stored in the cache directory and `nil' to disable auto-saving.
    ;; (default 'cache)
-   dotspacemacs-auto-save-file-location 'cache
+   dotspacemacs-auto-save-file-location 'nil
    ;; Maximum number of rollback slots to keep in the cache. (default 5)
    dotspacemacs-max-rollback-slots 5
    ;; If non nil, `helm' will try to minimize the space it uses. (default nil)
@@ -339,11 +348,13 @@ you should place your code here."
   ;; (define-key evil-visual-state-map [up] 'foo)
   ;; (define-key evil-visual-state-map [down] 'foo)
   (setq-default evil-escape-delay 0.2)
+  (setq python-shell-interpreter "/Users/aron/.pyenv/shims/python")
+
 
   (define-key evil-normal-state-map (kbd "C-i") 'evil-jump-forward)
   (global-set-key (kbd "<tab>") 'indent-for-tab-command)
   (evil-define-key 'normal evil-jumper-mode-map (kbd "TAB") nil)
-
+  (global-set-key (kbd "C-h") 'delete-backward-char)
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; OS X SPECIFIC
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -354,12 +365,13 @@ you should place your code here."
   (setq evil-search-highlight-persist nil)
 
   (setq neo-theme 'ascii)
+  (setq treemacs-no-png-images t)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; PYTHON STUFF
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  (setq python-shell-interpreter "python3"
-        python-shell-interpreter-args "-i")
+  ;; (setq python-shell-interpreter "python3"
+  ;;       python-shell-interpreter-args "-i")
   ;; (with-eval-after-load 'python
   ;;   (defun python-shell-completion-native-try ()
   ;;     "Return non-nil if can trigger native completion."
@@ -374,19 +386,28 @@ you should place your code here."
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; UNDO TREE
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  (unless (file-exists-p (concat spacemacs-cache-directory "undo"))
-    (make-directory (concat spacemacs-cache-directory "undo")))
-  (setq undo-tree-auto-save-history t
-        undo-tree-history-directory-alist
-        `(("." . ,(concat spacemacs-cache-directory "undo"))))
-  (setq undo-tree-visualizer-relative-timestamps nil)
+  ;; (unless (file-exists-p (concat spacemacs-cache-directory "undo"))
+  ;;   (make-directory (concat spacemacs-cache-directory "undo")))
+  ;; (setq undo-tree-auto-save-history f
+  ;;       undo-tree-history-directory-alist
+  ;;       `(("." . ,(concat spacemacs-cache-directory "undo"))))
+  ;; (setq undo-tree-visualizer-relative-timestamps nil)
+  (setq undo-tree-enable-undo-in-region nil)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; VARIOUS
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (setq dired-listing-switches "-alh")
   (setq-default evil-search-module 'evil-search)
+  (setq create-lockfiles nil)
+  (setq helm-buffer-max-length 40)
+  (setq-default shell-file-name "/bin/bash")
 
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; DISABLE SYNTAX CHECKING BY DEFAULT
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  (setq-default dotspacemacs-configuration-layers
+                '((syntax-checking :variables syntax-checking-enable-by-default nil)))
 
   ;; GETS RID OF MENU BAR IN SOME MODES
   (defun contextual-menubar (&optional frame)
@@ -401,7 +422,6 @@ you should place your code here."
   (setq org-refile-targets '((org-agenda-files :maxlevel . 9)
         (nil :maxlevel . 3)))
 
-  (setq org-default-notes-file "~/org/refile.org")
 
   (defun buffer-mode (buffer-or-string)
     "Returns the major mode associated with a buffer."
@@ -420,31 +440,64 @@ you should place your code here."
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; ORG MODE
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  (setq org-capture-templates
-        (quote (("t" "todo" entry (file "~/org/todo.org")
-                 "* TODO %?\n%T\n" :empty-lines 1)
-                ;; ("e" "experiment" entry (file+headline "~/org/experiments.org" "refile")
-                ;; "* Experiment %U :experiment: \n** Name: %^{name| }\n** Tag: %^{tag| }\n** ID: %^{id| } \n** Description: \n %? \n** Results: \n" )
-                ;; ("e" "experiment" entry (file (lambda () (buffer-file-name)))
-                ("e" "experiment" entry (file (lambda () (if-org-get-name "~/org/experiments.org")))
-                ;; ("e" "experiment" entry (file "~/org/experiments.org")
-                 "* Experiment %U :experiment: \n** Name: %^{name| }\n** ID: %^{id| } \n** Description: \n %? \n** Results: \n" )
-                ("n" "note" entry (file "~/org/notes.org")
-                 "* %? :NOTE:\n%T\n" )
-                ("j" "Journal" entry (file+datetree "~/org/journal.org")
-                 "* %T\n%?\n" )
-                ("m" "Meeting" entry (file "~/org/meetings.org")
-                 "* MEETING with %^{participants} :MEETING:%T\n%?"  ))))
+  (with-eval-after-load 'org
 
-  (setq org-outline-path-complete-in-steps nil)
-  ;; (setq org-refile-use-outline-path t)
-  (setq org-refile-use-outline-path 'file)
+    (setq org-default-notes-file "~/org/refile.org")
 
-  ;; auto save on refile
-  (add-hook 'org-after-refile-insert-hook
-            (lambda ()
-              (add-hook 'auto-save-hook 'org-save-all-org-buffers nil t)
-              (auto-save-mode)))
+    (setq org-capture-templates
+          (quote (("t" "todo" entry (file "~/org/todo.org")
+                  "* TODO %?\n%T\n" :empty-lines 1)
+                  ;; ("e" "experiment" entry (file+headline "~/org/experiments.org" "refile")
+                  ;; "* Experiment %U :experiment: \n** Name: %^{name| }\n** Tag: %^{tag| }\n** ID: %^{id| } \n** Description: \n %? \n** Results: \n" )
+                  ;; ("e" "experiment" entry (file (lambda () (buffer-file-name)))
+
+                  ("e" "experiment" entry (file (lambda () (if-org-get-name "~/org/experiments.org")))
+                  ;; ("e" "experiment" entry (file "~/org/experiments.org")
+                  "* Experiment %U :experiment: \n** Name: %^{name| }\n** ID: %^{id| } \n** Description: \n %? \n** Results: \n" )
+                  ("n" "note" entry (file "/Users/aron/org/notes.org")
+                  "* %? :NOTE:\n%T\n" )
+                  ("j" "Journal" entry (file+olp+datetree "~/org/journal.org")
+                  "* %T\n%?\n" )
+                  ("m" "Meeting" entry (file "~/org/meetings.org")
+                  "* MEETING with %^{participants} :MEETING:%T\n%?"  ))))
+
+    (setq org-outline-path-complete-in-steps nil)
+    ;; (setq org-refile-use-outline-path t)
+    (setq org-refile-use-outline-path 'file)
+
+    ;; auto save on refile
+    (add-hook 'org-after-refile-insert-hook
+              (lambda ()
+                (add-hook 'auto-save-hook 'org-save-all-org-buffers nil t)
+                (auto-save-mode)))
+
+    (setq org-todo-keywords
+            '((sequence "TODO" "IN PROGRESS" "|" "DONE" )))
+
+  )
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; BIBTEX
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  (setq org-ref-default-bibliography '("~/org/references.bib")
+        org-ref-pdf-directory "~/org/papers/"
+        org-ref-bibliography-notes "~/org/bib_notes.org")
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; ECLIM
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+  (setq eclim-eclipse-dirs '("~/Applications/java-oxygen/Eclipse.app/Contents/Eclipse")
+        eclim-executable "~/Applications/java-oxygen/Eclipse.app/Contents/Eclipse/eclim"
+        eclimd-executable "~/Applications/java-oxygen/Eclipse.app/Contents/Eclipse/eclimd"
+        )
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; LATEX
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  (setenv "LANG" "en_US.UTF-8")
+  (add-hook 'doc-view-mode-hook 'auto-revert-mode)
 
 )
 
@@ -455,22 +508,25 @@ you should place your code here."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ansi-color-names-vector
+   ["#080808" "#d70000" "#67b11d" "#875f00" "#268bd2" "#af00df" "#00ffff" "#b2b2b2"])
  '(company-quickhelp-color-background "#4F4F4F")
  '(company-quickhelp-color-foreground "#DCDCCC")
  '(custom-safe-themes
    (quote
     ("c620ce43a0b430dcc1b06850e0a84df4ae5141d698d71e17de85e7494377fd81" default)))
  '(evil-want-Y-yank-to-eol nil)
- '(fci-rule-color "#383838")
+ '(fci-rule-color "#383838" t)
  '(nrepl-message-colors
    (quote
     ("#CC9393" "#DFAF8F" "#F0DFAF" "#7F9F7F" "#BFEBBF" "#93E0E3" "#94BFF3" "#DC8CC3")))
  '(org-agenda-files
    (quote
-    ("~/org/journal.org" "~/org/personal_development.org" "~/org/meetings.org" "~/org/research_days.org" "~/org/main.org" "~/org/todo.org")))
+    ("~/org/ML_learning.org" "~/org/experiments.org" "~/org/epics.org" "~/org/journal.org" "~/org/personal_development.org" "~/org/meetings.org" "~/org/research_days.org" "~/org/main.org" "~/org/todo.org")))
+ '(org-use-fast-tag-selection nil)
  '(package-selected-packages
    (quote
-    (atom-one-dark-theme-theme org-projectile-helm white-sand-theme rebecca-theme org-mime exotica-theme ghub let-alist ein request-deferred websocket deferred ox-reveal powerline spinner org-category-capture gntp skewer-mode simple-httpd json-snatcher json-reformat parent-mode gitignore-mode fringe-helper git-gutter+ git-gutter flyspell-correct pos-tip pkg-info epl flx iedit anzu goto-chg undo-tree autothemer dash-functional tern bind-map bind-key pythonic dash auto-complete popup atom-one-dark-theme multiple-cursors request flycheck sbt-mode scala-mode diminish packed avy anaconda-mode eclim yasnippet company smartparens magit magit-popup highlight evil git-commit with-editor helm helm-core async alert log4e projectile hydra f js2-mode s winum solarized-theme madhat2r-theme fuzzy csv-mode web-mode tagedit slim-mode scss-mode sass-mode pug-mode less-css-mode helm-css-scss haml-mode emmet-mode company-web web-completion-data mmm-mode markdown-toc markdown-mode gh-md zonokai-theme zenburn-theme zen-and-art-theme yapfify yaml-mode xterm-color ws-butler window-numbering which-key web-beautify volatile-highlights vimrc-mode vi-tilde-fringe uuidgen use-package underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme tronesque-theme toxi-theme toc-org tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme sql-indent spacemacs-theme spaceline spacegray-theme soothe-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme smeargle shell-pop seti-theme reverse-theme restart-emacs rainbow-delimiters railscasts-theme quelpa pyvenv pytest pyenv-mode py-isort purple-haze-theme professional-theme popwin planet-theme pip-requirements phoenix-dark-pink-theme phoenix-dark-mono-theme persp-mode pcre2el pastels-on-dark-theme paradox orgit organic-green-theme org-projectile org-present org-pomodoro org-plus-contrib org-download org-bullets open-junk-file omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noflet noctilux-theme niflheim-theme neotree naquadah-theme mustang-theme multi-term move-text monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme magit-gitflow macrostep lush-theme lorem-ipsum livid-mode live-py-mode linum-relative link-hint light-soap-theme json-mode js2-refactor js-doc jbeans-theme jazz-theme ir-black-theme insert-shebang inkpot-theme info+ indent-guide ido-vertical-mode hy-mode hungry-delete htmlize hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt heroku-theme hemisu-theme help-fns+ helm-themes helm-swoop helm-pydoc helm-projectile helm-mode-manager helm-make helm-gitignore helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme google-translate golden-ratio gnuplot gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ gandalf-theme flyspell-correct-helm flycheck-pos-tip flx-ido flatui-theme flatland-theme fish-mode firebelly-theme fill-column-indicator farmhouse-theme fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu espresso-theme eshell-z eshell-prompt-extras esh-help ensime elisp-slime-nav dumb-jump dracula-theme django-theme diff-hl define-word darktooth-theme darkokai-theme darkmine-theme darkburn-theme dakrone-theme dactyl-mode cython-mode cyberpunk-theme company-tern company-statistics company-shell company-emacs-eclim company-anaconda column-enforce-mode color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized coffee-mode clues-theme clean-aindent-mode cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme auto-yasnippet auto-highlight-symbol auto-dictionary auto-compile apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes aggressive-indent afternoon-theme adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
+    (zotxt zotelo transient polymode org-ref pdf-tools key-chord ivy tablist helm-bibtex parsebib biblio biblio-core atom-dark-theme treepy graphql org-projectile-helm white-sand-theme rebecca-theme org-mime exotica-theme ghub let-alist ein request-deferred websocket deferred ox-reveal powerline spinner org-category-capture gntp skewer-mode simple-httpd json-snatcher json-reformat parent-mode gitignore-mode fringe-helper git-gutter+ git-gutter flyspell-correct pos-tip pkg-info epl flx iedit anzu goto-chg undo-tree autothemer dash-functional tern bind-map bind-key pythonic dash auto-complete popup multiple-cursors request flycheck sbt-mode scala-mode diminish packed avy anaconda-mode eclim yasnippet company smartparens magit magit-popup highlight evil git-commit with-editor helm helm-core async alert log4e projectile hydra f js2-mode s winum solarized-theme madhat2r-theme fuzzy csv-mode web-mode tagedit slim-mode scss-mode sass-mode pug-mode less-css-mode helm-css-scss haml-mode emmet-mode company-web web-completion-data mmm-mode markdown-toc markdown-mode gh-md zonokai-theme zenburn-theme zen-and-art-theme yapfify yaml-mode xterm-color ws-butler window-numbering which-key web-beautify volatile-highlights vimrc-mode vi-tilde-fringe uuidgen use-package underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme tronesque-theme toxi-theme toc-org tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme sql-indent spacemacs-theme spaceline spacegray-theme soothe-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme smeargle shell-pop seti-theme reverse-theme restart-emacs rainbow-delimiters railscasts-theme quelpa pyvenv pytest pyenv-mode py-isort purple-haze-theme professional-theme popwin planet-theme pip-requirements phoenix-dark-pink-theme phoenix-dark-mono-theme persp-mode pcre2el pastels-on-dark-theme paradox orgit organic-green-theme org-projectile org-present org-pomodoro org-plus-contrib org-download org-bullets open-junk-file omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noflet noctilux-theme niflheim-theme neotree naquadah-theme mustang-theme multi-term move-text monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme magit-gitflow macrostep lush-theme lorem-ipsum livid-mode live-py-mode linum-relative link-hint light-soap-theme json-mode js2-refactor js-doc jbeans-theme jazz-theme ir-black-theme insert-shebang inkpot-theme info+ indent-guide ido-vertical-mode hy-mode hungry-delete htmlize hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt heroku-theme hemisu-theme help-fns+ helm-themes helm-swoop helm-pydoc helm-projectile helm-mode-manager helm-make helm-gitignore helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme google-translate golden-ratio gnuplot gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ gandalf-theme flyspell-correct-helm flycheck-pos-tip flx-ido flatui-theme flatland-theme fish-mode firebelly-theme fill-column-indicator farmhouse-theme fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu espresso-theme eshell-z eshell-prompt-extras esh-help ensime elisp-slime-nav dumb-jump dracula-theme django-theme diff-hl define-word darktooth-theme darkokai-theme darkmine-theme darkburn-theme dakrone-theme dactyl-mode cython-mode cyberpunk-theme company-tern company-statistics company-shell company-emacs-eclim company-anaconda column-enforce-mode color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized coffee-mode clues-theme clean-aindent-mode cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme auto-yasnippet auto-highlight-symbol auto-dictionary auto-compile apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes aggressive-indent afternoon-theme adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
  '(pdf-view-midnight-colors (quote ("#DCDCCC" . "#383838")))
  '(safe-local-variable-values
    (quote
@@ -506,3 +562,68 @@ you should place your code here."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t (:background nil)))))
+(defun dotspacemacs/emacs-custom-settings ()
+  "Emacs custom settings.
+This is an auto-generated function, do not modify its content directly, use
+Emacs customize menu instead.
+This function is called at the very end of Spacemacs initialization."
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(ansi-color-names-vector
+   ["#080808" "#d70000" "#67b11d" "#875f00" "#268bd2" "#af00df" "#00ffff" "#b2b2b2"])
+ '(company-quickhelp-color-background "#4F4F4F")
+ '(company-quickhelp-color-foreground "#DCDCCC")
+ '(custom-safe-themes
+   (quote
+    ("c620ce43a0b430dcc1b06850e0a84df4ae5141d698d71e17de85e7494377fd81" default)))
+ '(evil-want-Y-yank-to-eol nil)
+ '(fci-rule-color "#383838" t)
+ '(nrepl-message-colors
+   (quote
+    ("#CC9393" "#DFAF8F" "#F0DFAF" "#7F9F7F" "#BFEBBF" "#93E0E3" "#94BFF3" "#DC8CC3")))
+ '(org-agenda-files
+   (quote
+    ("~/org/ML_learning.org" "~/org/experiments.org" "~/org/epics.org" "~/org/journal.org" "~/org/personal_development.org" "~/org/meetings.org" "~/org/research_days.org" "~/org/main.org" "~/org/todo.org")))
+ '(org-use-fast-tag-selection nil)
+ '(package-selected-packages
+   (quote
+    (toml-mode racer helm-gtags ggtags flycheck-rust counsel-gtags cargo rust-mode zotxt zotelo transient polymode org-ref pdf-tools key-chord ivy tablist helm-bibtex parsebib biblio biblio-core atom-dark-theme treepy graphql org-projectile-helm white-sand-theme rebecca-theme org-mime exotica-theme ghub let-alist ein request-deferred websocket deferred ox-reveal powerline spinner org-category-capture gntp skewer-mode simple-httpd json-snatcher json-reformat parent-mode gitignore-mode fringe-helper git-gutter+ git-gutter flyspell-correct pos-tip pkg-info epl flx iedit anzu goto-chg undo-tree autothemer dash-functional tern bind-map bind-key pythonic dash auto-complete popup multiple-cursors request flycheck sbt-mode scala-mode diminish packed avy anaconda-mode eclim yasnippet company smartparens magit magit-popup highlight evil git-commit with-editor helm helm-core async alert log4e projectile hydra f js2-mode s winum solarized-theme madhat2r-theme fuzzy csv-mode web-mode tagedit slim-mode scss-mode sass-mode pug-mode less-css-mode helm-css-scss haml-mode emmet-mode company-web web-completion-data mmm-mode markdown-toc markdown-mode gh-md zonokai-theme zenburn-theme zen-and-art-theme yapfify yaml-mode xterm-color ws-butler window-numbering which-key web-beautify volatile-highlights vimrc-mode vi-tilde-fringe uuidgen use-package underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme tronesque-theme toxi-theme toc-org tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme sql-indent spacemacs-theme spaceline spacegray-theme soothe-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme smeargle shell-pop seti-theme reverse-theme restart-emacs rainbow-delimiters railscasts-theme quelpa pyvenv pytest pyenv-mode py-isort purple-haze-theme professional-theme popwin planet-theme pip-requirements phoenix-dark-pink-theme phoenix-dark-mono-theme persp-mode pcre2el pastels-on-dark-theme paradox orgit organic-green-theme org-projectile org-present org-pomodoro org-plus-contrib org-download org-bullets open-junk-file omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noflet noctilux-theme niflheim-theme neotree naquadah-theme mustang-theme multi-term move-text monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme magit-gitflow macrostep lush-theme lorem-ipsum livid-mode live-py-mode linum-relative link-hint light-soap-theme json-mode js2-refactor js-doc jbeans-theme jazz-theme ir-black-theme insert-shebang inkpot-theme info+ indent-guide ido-vertical-mode hy-mode hungry-delete htmlize hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt heroku-theme hemisu-theme help-fns+ helm-themes helm-swoop helm-pydoc helm-projectile helm-mode-manager helm-make helm-gitignore helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme google-translate golden-ratio gnuplot gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ gandalf-theme flyspell-correct-helm flycheck-pos-tip flx-ido flatui-theme flatland-theme fish-mode firebelly-theme fill-column-indicator farmhouse-theme fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu espresso-theme eshell-z eshell-prompt-extras esh-help ensime elisp-slime-nav dumb-jump dracula-theme django-theme diff-hl define-word darktooth-theme darkokai-theme darkmine-theme darkburn-theme dakrone-theme dactyl-mode cython-mode cyberpunk-theme company-tern company-statistics company-shell company-emacs-eclim company-anaconda column-enforce-mode color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized coffee-mode clues-theme clean-aindent-mode cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme auto-yasnippet auto-highlight-symbol auto-dictionary auto-compile apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes aggressive-indent afternoon-theme adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
+ '(pdf-view-midnight-colors (quote ("#DCDCCC" . "#383838")))
+ '(safe-local-variable-values
+   (quote
+    ((eval setq python-shell-extra-pythonpaths
+           (list "/Users/aron/programming/kraken/rest_server/" "sandbox/data_utils/"))
+     (eval setq python-shell-extra-pythonpaths
+           (list "/Users/aron/programming/kraken/rest_server/")))))
+ '(vc-annotate-background "#2B2B2B")
+ '(vc-annotate-color-map
+   (quote
+    ((20 . "#BC8383")
+     (40 . "#CC9393")
+     (60 . "#DFAF8F")
+     (80 . "#D0BF8F")
+     (100 . "#E0CF9F")
+     (120 . "#F0DFAF")
+     (140 . "#5F7F5F")
+     (160 . "#7F9F7F")
+     (180 . "#8FB28F")
+     (200 . "#9FC59F")
+     (220 . "#AFD8AF")
+     (240 . "#BFEBBF")
+     (260 . "#93E0E3")
+     (280 . "#6CA0A3")
+     (300 . "#7CB8BB")
+     (320 . "#8CD0D3")
+     (340 . "#94BFF3")
+     (360 . "#DC8CC3"))))
+ '(vc-annotate-very-old-color "#DC8CC3"))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(default ((t (:background nil)))))
+)

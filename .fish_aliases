@@ -1,5 +1,5 @@
 alias ls "ls -laGho --color"
-alias ipython "python3.6 -m IPython"
+alias ipython "python3.7 -m IPython"
 alias gitls "git log --decorate --graph --date-order --oneline"
 alias gitlst "gitls --pretty=format:'%h%x09%an%x09%ad%x09%s'"
 alias ctags "/usr/local/bin/ctags"
