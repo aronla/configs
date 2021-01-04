@@ -1,5 +1,5 @@
 alias ls "ls -lhaG"
-alias ipython "python3.7 -m IPython"
+alias ipython "python3 -m IPython"
 alias gitls "git log --decorate --graph --date-order --oneline"
 alias gitlst "gitls --pretty=format:'%h%x09%an%x09%ad%x09%s'"
 alias ctags "/usr/local/bin/ctags"
@@ -8,3 +8,6 @@ alias emn "emacsclient -c -nw --alternate-editor=''"
 alias d "docker"
 alias dl "docker ps -l -q"
 alias dc "docker-compose"
+
+alias hh "hstr"
+alias mmdc "/Users/kmgc004/git_repos/node_modules/.bin/mmdc"
