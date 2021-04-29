@@ -8,6 +8,8 @@ alias emn "emacsclient -c -nw --alternate-editor=''"
 alias d "docker"
 alias dl "docker ps -l -q"
 alias dc "docker-compose"
+alias k "kubectl"
+alias cat "bat"
 
 alias hh "hstr"
 alias mmdc "/Users/kmgc004/git_repos/node_modules/.bin/mmdc"

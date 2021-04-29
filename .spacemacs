@@ -526,7 +526,8 @@ you should place your code here."
 
     (setq org-capture-templates
           (quote (("t" "Todo" entry (file "~/org/todo.org")
-                  "* TODO %? %T\n" :empty-lines 1)
+                  "* TODO %? %T\n" :empty-lines 0)
+                  ;; "* TODO %? %T" :empty-lines 1)
                   ;; ("e" "experiment" entry (file+headline "~/org/experiments.org" "refile")
                   ;; "* Experiment %U :experiment: \n** Name: %^{name| }\n** Tag: %^{tag| }\n** ID: %^{id| } \n** Description: \n %? \n** Results: \n" )
                   ;; ("e" "experiment" entry (file (lambda () (buffer-file-name)))
