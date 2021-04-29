@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -e
+
+osascript - <<EOF
+tell application "emacs"
+    activate
+end tell
+EOF

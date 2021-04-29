@@ -1,0 +1,7 @@
+ctrl - 0 : open -a /Applications/iTerm.app
+ctrl - 9 : open -a ~/Scripts/emacs
+
+lctrl - h : 0x04
+
+shift - space : /Users/kmgc004/Scripts/change_tilde_key && /usr/bin/automator /Users/kmgc004/Scripts/changeScrollDirection.workflow/ 
+
