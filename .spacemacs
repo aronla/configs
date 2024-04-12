@@ -25,20 +25,22 @@ values."
    ;; will ask for confirmation before installing
    ;; a layer lazily. (default t)
    dotspacemacs-ask-for-lazy-installation t
+
    ;; If non-nil layers with lazy install support are lazy installed.
    ;; List of additional paths where to look for configuration layers.
    ;; Paths must have a trailing slash (i.e. `~/.mycontribs/')
    dotspacemacs-configuration-layer-path '()
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
-   '(ansible
+   '(ruby
+     windows-scripts
+     ansible
      rust
-     python
-  javascript
+     javascript
      csv
      html
-     elasticsearch
-     ipython-notebook
+     (ipython-notebook)
+
      clojure
      markdown
      sql
@@ -48,35 +50,44 @@ values."
      yaml
      (auto-completion :variables
         auto-completion-tab-key-behavior 'complete
+        auto-completion-tab-key-behavior 'cycle
+        auto-completion-enable-help-tooltip t
+        auto-completion-use-company-box nil 
+        auto-completion-use-company-postframe t
       )
      latex
      (lsp :variables
+          ;; lsp-auto-configure t        ; to configure only features u like
           ;; lsp-auto-configure nil        ; to configure only features u like
           ;; lsp-prefer-flymake nil
           ;; lsp-auto-execute-action nil
-          ;;
-          ;; lsp-navigation 'simple
-          ;; this is also too noisy
 
-          ;; lsp-ui-doc-enable nil
+          ;; lsp-navigation 'simple
+          ;;this is also too noisy
+
+          lsp-ui-doc-mode t
+          ;; lsp-ui-doc-enable t
           ;; lsp-ui-doc-delay 0.9
-          ;; lsp-ui-doc-position 'top
-          ;; lsp-ui-doc-alignment 'frame
-          ;; lsp-ui-sideline-enable nil 
-          ;; lsp-ui-sideline-show-symbol nil
-          ;; ;; lsp-ui-sideline-show-diagnostics nil
-          ;; lsp-ui-sideline-show-hover t 
+          lsp-ui-doc-show-with-mouse nil
+          lsp-ui-doc-show-with-cursor t
+          lsp-ui-doc-position 'at-point
+          lsp-ui-doc-alignment 'frame
+          lsp-ui-sideline-enable t
+          lsp-ui-sideline-show-symbol t
+          ;; lsp-ui-sideline-show-diagnostics t
+          ;; lsp-ui-sideline-show-hover t
           ;; lsp-ui-sideline-show-code-actions t
           ;; lsp-ui-sideline-update-mode t
           ;; lsp-ui-peek-enable t
           ;; lsp-ui-peek-show-directory t
           ;; ;; these also too noisy?
-          ;; lsp-ui-flycheck-enable nil
+          lsp-ui-flycheck-enable nil
           )
      ;; (python :variables python-backend 'anaconda)
      (python :variables
-             python-backend 'anaconda
-             python-lsp-server 'pyls
+             ;; python-backend 'anaconda
+             python-backend 'lsp
+             python-lsp-server 'pyright
              python-formatter 'black
              )
      (scala
@@ -90,11 +101,11 @@ values."
      ;; ----------------------------------------------------------------
      helm
      ;; themes-megapack
-     ;; better-defaults
+     better-defaults
      emacs-lisp
      git
      bibtex
-     ;; markdown
+     markdown
      (org :variables
           org-enable-reveal-js-support t)
      (shell :variables
@@ -112,6 +123,7 @@ values."
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
    dotspacemacs-additional-packages '(ox-reveal
+                                      polymode
                                       ;; scala-mode
                                       atom-dark-theme)
    ;; A list of packages that cannot be updated.
@@ -120,7 +132,6 @@ values."
    dotspacemacs-excluded-packages '(evil-search-highlight-persist
                                     smartparens
                                     importmagic
-                                    undo-tree
                                     org-bullets)
    ;; Defines the behaviour of Spacemacs when installing packages.
    ;; Possible values are `used-only', `used-but-keep-unused' and `all'.
@@ -390,7 +401,7 @@ you should place your code here."
   (setq vc-follow-symlinks t)
   ;; (setq python-shell-interpreter "/usr/bin/python3")
   ;; (setq python-shell-interpreter-args "-m IPython --simple-prompt -i")
-  (setq exec-path (cons "/Users/kmgc004/.pyenv/shims" exec-path))
+  (setq exec-path (cons "/Users/alagerberg/.pyenv/shims" exec-path))
 
   (define-key evil-normal-state-map (kbd "C-i") 'evil-jump-forward)
   (global-set-key (kbd "<tab>") 'indent-for-tab-command)
@@ -408,7 +419,7 @@ you should place your code here."
   (setq evil-search-highlight-persist nil)
 
   (setq neo-theme 'ascii)
-  (setq treemacs-no-png-images t)
+  (setq treemacs-no-png-images nil)
   (setq org-export-backends '(md ascii html icalendar latex od))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -426,7 +437,15 @@ you should place your code here."
   ;;        (get-buffer-process (current-buffer))
   ;;        nil "_"))))
   (defvaralias 'flycheck-python-pylint-executable 'python-shell-interpreter)
+  (setq python-auto-set-local-pyenv-version "on-visit")
+  (setenv "PYTHONPATH" "/Users/alagerberg/work/RF/main/python/src/")
 
+  ;; (setq python-shell-extra-pythonpaths '("/Users/alagerberg/work/RF/main/python/src/", "/Users/alagerberg/work/RF/main/python/src/recordedfuture/libs/ml_lab"))
+  (setq python-shell-extra-pythonpaths '("/Users/alagerberg/work/RF/main/python/src/" "/Users/alagerberg/work/RF/ml-lab"))
+
+  ;; (add-hook 'ein:connect-mode-hook 'ein:jedi-setup)`
+  ;; (setq ein:polymode t)
+  ;; (setq ein:output-area-inlined-images t)
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; UNDO TREE
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -437,7 +456,17 @@ you should place your code here."
   ;;       `(("." . ,(concat spacemacs-cache-directory "undo"))))
   ;; (setq undo-tree-visualizer-relative-timestamps nil)
   (setq undo-tree-enable-undo-in-region nil)
+  (evil-set-undo-system 'undo-tree)
 
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; WRITEROOM MODE
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  (setq writeroom-width 150)
+  (setq writeroom-mode-line t)
+
+  (add-hook 'org-mode-hook 'writeroom-mode)
+  (add-hook 'text-mode-hook 'writeroom-mode)
+  (add-hook 'python-mode-hook 'writeroom-mode)
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; VARIOUS
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -449,6 +478,28 @@ you should place your code here."
   (setq ob-mermaid-cli-path "~/git_repos/node_modules/.bin/mmdc")
   (setq org-confirm-babel-evaluate nil)
 
+  (setq tramp-use-ssh-control-master-options nil)
+  (setq tramp-ssh-controlmaster-options "")
+  (customize-set-variable 'tramp-use-ssh-controlmaster-options nil)
+  (setq tramp-verbose 6)
+
+  (defadvice projectile-project-root (around ignore-remote first activate)
+    (unless (file-remote-p default-directory) ad-do-it))
+
+  ;; (after! tramp
+          (setq tramp-inline-compress-start-size 1000)
+          (setq tramp-copy-size-limit 10000)
+          (setq vc-handled-backends '(Git))
+          (setq tramp-verbose 1)
+          (setq tramp-default-method "scp")
+          (setq tramp-use-ssh-controlmaster-options nil)
+          (setq projectile--mode-line "Projectile")
+          (setq tramp-completion-reread-directory-timeout 0)
+          (setq vc-ignore-dir-regexp
+                (format "\\(%s\\)\\|\\(%s\\)"
+                        vc-ignore-dir-regexp
+                        tramp-file-name-regexp))
+          ;; )
   ;; (setq lsp-imenu-sort-methods '(kind))
   ;; (setq lsp-imenu-index-symbol-kinds '(Class Method Constructor Enum Interface Function Struct))
 
@@ -458,7 +509,7 @@ you should place your code here."
          (python . t)
          (sql . t)
          (clojure . t)
-         (elasticsearch . t)
+         ;; (elasticsearch . t)
          (js . t)
          (groovy . t)
          (java . t)
@@ -479,7 +530,7 @@ you should place your code here."
       (let ((file (tramp-file-name-localname (tramp-dissect-file-name file))))
         (replace-regexp-in-string (concat "\\`" dir) "" file))))
 
-  (remove-hook 'python-mode-hook 'spacemacs//init-eldoc-python-mode)
+  ;; (remove-hook 'python-mode-hook 'spacemacs//init-eldoc-python-mode)
   (setq-default tramp-verbose 3)
   (setq-default auto-revert-check-vc-info nil)
   (setq-default auto-revert-remote-files nil)
@@ -516,46 +567,48 @@ you should place your code here."
     )
 
   (require 'helm-bookmark)
-
+  (require 'company-box)
+  (add-hook 'company-mode-hook 'company-box-mode)
+  ;; (setq-default flycheck-scalastylerc "/usr/local/etc/scalastyle_config.xml")
+  ;; (use-package company-box
+  ;;   :hook (company-mode . company-box-mode))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; ORG MODE
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  (with-eval-after-load 'org
 
-    (setq org-default-notes-file "~/org/refile.org")
+  (setq org-default-notes-file "~/org/refile.org")
 
-    (setq org-capture-templates
-          (quote (("t" "Todo" entry (file "~/org/todo.org")
-                  "* TODO %? %T\n" :empty-lines 0)
-                  ;; "* TODO %? %T" :empty-lines 1)
-                  ;; ("e" "experiment" entry (file+headline "~/org/experiments.org" "refile")
-                  ;; "* Experiment %U :experiment: \n** Name: %^{name| }\n** Tag: %^{tag| }\n** ID: %^{id| } \n** Description: \n %? \n** Results: \n" )
-                  ;; ("e" "experiment" entry (file (lambda () (buffer-file-name)))
+  (setq org-capture-templates
+        (quote (("t" "Todo" entry (file "~/org/todo.org")
+                "* TODO %? %T\n" :empty-lines 0)
+                ;; "* TODO %? %T" :empty-lines 1)
+                ;; ("e" "experiment" entry (file+headline "~/org/experiments.org" "refile")
+                ;; "* Experiment %U :experiment: \n** Name: %^{name| }\n** Tag: %^{tag| }\n** ID: %^{id| } \n** Description: \n %? \n** Results: \n" )
+                ;; ("e" "experiment" entry (file (lambda () (buffer-file-name)))
 
-                  ;; ("e" "experiment" entry (file (lambda () (if-org-get-name "~/org/experiments.org")))
-                  ;; ;; ("e" "experiment" entry (file "~/org/experiments.org")
-                  ;; "* Experiment %U :experiment: \n** Name: %^{name| }\n** ID: %^{id| } \n** Description: \n %? \n** Results: \n" )
-                  ("n" "Note" entry (file "~/org/notes.org")
-                  "\n* %? :NOTE:\n%T\n" )
-                  ("j" "Journal" entry (file+olp+datetree "~/org/journal.org")
-                  "* %T\n%?\n" )
-                  ("m" "Meeting" entry (file "~/org/meetings.org")
-                  "\n\n* MEETING with %^{participants} :MEETING:%T\n%?" :empty-lines 1 ))))
+                ;; ("e" "experiment" entry (file (lambda () (if-org-get-name "~/org/experiments.org")))
+                ;; ;; ("e" "experiment" entry (file "~/org/experiments.org")
+                ;; "* Experiment %U :experiment: \n** Name: %^{name| }\n** ID: %^{id| } \n** Description: \n %? \n** Results: \n" )
+                ("n" "Note" entry (file "~/org/notes.org")
+                "\n* %? :NOTE:\n%T\n" )
+                ("j" "Journal" entry (file+olp+datetree "~/org/journal.org")
+                "* %T\n%?\n" )
+                ("m" "Meeting" entry (file "~/org/meetings.org")
+                "\n\n* MEETING with %^{participants} :MEETING:%T\n%?" :empty-lines 1 ))))
 
-    (setq org-outline-path-complete-in-steps nil)
-    ;; (setq org-refile-use-outline-path t)
-    (setq org-refile-use-outline-path 'file)
+  (setq org-outline-path-complete-in-steps nil)
+  ;; (setq org-refile-use-outline-path t)
+  (setq org-refile-use-outline-path 'file)
 
-    ;; auto save on refile
-    (add-hook 'org-after-refile-insert-hook
-              (lambda ()
-                (add-hook 'auto-save-hook 'org-save-all-org-buffers nil t)
-                (auto-save-mode)))
+  ;; auto save on refile
+  (add-hook 'org-after-refile-insert-hook
+            (lambda ()
+              (add-hook 'auto-save-hook 'org-save-all-org-buffers nil t)
+              (auto-save-mode)))
 
-    (setq org-todo-keywords
-            '((sequence "TODO" "IN PROGRESS" "|" "DONE" )))
+  (setq org-todo-keywords
+          '((sequence "TODO" "IN PROGRESS" "|" "DONE" )))
 
-  )
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; BIBTEX
@@ -624,11 +677,12 @@ This function is called at the very end of Spacemacs initialization."
  '(lsp-ui-doc-enable nil)
  '(nrepl-message-colors
    '("#CC9393" "#DFAF8F" "#F0DFAF" "#7F9F7F" "#BFEBBF" "#93E0E3" "#94BFF3" "#DC8CC3"))
- '(org-agenda-files
-   '("~/org/work/RE_engine.org" "~/org/work/bikg.org" "~/org/meetings.org"))
+ '(org-agenda-files '("~/org/todo.org"))
  '(package-selected-packages
-   '(jinja2-mode company-ansible ansible-doc ansible toml-mode ron-mode racer helm-gtags ggtags flycheck-rust counsel-gtags counsel swiper cargo rust-mode lsp-metals ob-mermaid es-mode spark ein polymode deferred anaphora websocket scala-mode sbt-mode noflet mvn meghanada maven-test-mode lsp-ui lsp-treemacs lsp-python-ms lsp-java helm-lsp groovy-mode groovy-imports pcache gradle-mode company-lsp lsp-mode cider clojure-snippets clojure-mode cider-eval-sexp-fu a web-completion-data company auto-complete pyvenv anaconda-mode pythonic fill-column-indicator zenburn-theme yasnippet-snippets yapfify yaml-mode xterm-color ws-butler writeroom-mode winum which-key web-mode web-beautify vterm volatile-highlights vimrc-mode vi-tilde-fringe uuidgen use-package treemacs-projectile treemacs-persp treemacs-magit treemacs-evil toc-org terminal-here tagedit symon symbol-overlay string-inflection sql-indent spaceline-all-the-icons smeargle slim-mode shell-pop scss-mode sass-mode restart-emacs rainbow-delimiters pytest pyenv-mode py-isort pug-mode prettier-js popwin pippel pipenv pip-requirements pcre2el password-generator paradox ox-reveal overseer orgit org-ref org-re-reveal org-projectile org-present org-pomodoro org-mime org-download org-cliplink org-brain open-junk-file nodejs-repl nameless multi-term move-text mmm-mode markdown-toc magit-svn magit-section magit-gitflow macrostep lorem-ipsum livid-mode live-py-mode link-hint json-navigator json-mode js2-refactor js-doc insert-shebang indent-guide impatient-mode hybrid-mode hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation helm-xref helm-themes helm-swoop helm-pydoc helm-purpose helm-projectile helm-org-rifle helm-org helm-mode-manager helm-make helm-ls-git helm-gitignore helm-git-grep helm-flx helm-descbinds helm-css-scss helm-company helm-c-yasnippet helm-ag google-translate golden-ratio gnuplot gitignore-templates gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ gh-md fuzzy font-lock+ flycheck-pos-tip flycheck-package flycheck-elsa flycheck-bashate flx-ido fish-mode fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-textobj-line evil-surround evil-org evil-numbers evil-nerd-commenter evil-matchit evil-magit evil-lisp-state evil-lion evil-indent-plus evil-iedit-state evil-goggles evil-exchange evil-escape evil-ediff evil-cleverparens evil-args evil-anzu eval-sexp-fu eshell-z eshell-prompt-extras esh-help emmet-mode elisp-slime-nav editorconfig dumb-jump dotenv-mode diminish devdocs define-word dactyl-mode cython-mode cyberpunk-theme csv-mode company-web company-tern company-shell company-reftex company-auctex company-anaconda column-enforce-mode clean-aindent-mode centered-cursor-mode browse-at-remote blacken auto-yasnippet auto-highlight-symbol auto-compile atom-dark-theme aggressive-indent ace-link ace-jump-helm-line ac-ispell))
+   '(seeing-is-believing rvm ruby-tools ruby-test-mode ruby-refactor ruby-hash-syntax rubocopfmt rubocop rspec-mode robe rbenv rake minitest enh-ruby-mode chruby bundler inf-ruby add-node-modules-path powershell bmx-mode jinja2-mode company-ansible ansible-doc ansible toml-mode ron-mode racer helm-gtags ggtags flycheck-rust counsel-gtags counsel swiper cargo rust-mode lsp-metals ob-mermaid es-mode spark ein polymode deferred anaphora websocket scala-mode sbt-mode noflet mvn meghanada maven-test-mode lsp-ui lsp-treemacs lsp-python-ms lsp-java helm-lsp groovy-mode groovy-imports pcache gradle-mode company-lsp lsp-mode cider clojure-snippets clojure-mode cider-eval-sexp-fu a web-completion-data company auto-complete pyvenv anaconda-mode pythonic fill-column-indicator zenburn-theme yasnippet-snippets yapfify yaml-mode xterm-color ws-butler writeroom-mode winum which-key web-mode web-beautify vterm volatile-highlights vimrc-mode vi-tilde-fringe uuidgen use-package treemacs-projectile treemacs-persp treemacs-magit treemacs-evil toc-org terminal-here tagedit symon symbol-overlay string-inflection sql-indent spaceline-all-the-icons smeargle slim-mode shell-pop scss-mode sass-mode restart-emacs rainbow-delimiters pytest pyenv-mode py-isort pug-mode prettier-js popwin pippel pipenv pip-requirements pcre2el password-generator paradox ox-reveal overseer orgit org-ref org-re-reveal org-projectile org-present org-pomodoro org-mime org-download org-cliplink org-brain open-junk-file nodejs-repl nameless multi-term move-text mmm-mode markdown-toc magit-svn magit-section magit-gitflow macrostep lorem-ipsum livid-mode live-py-mode link-hint json-navigator json-mode js2-refactor js-doc insert-shebang indent-guide impatient-mode hybrid-mode hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation helm-xref helm-themes helm-swoop helm-pydoc helm-purpose helm-projectile helm-org-rifle helm-org helm-mode-manager helm-make helm-ls-git helm-gitignore helm-git-grep helm-flx helm-descbinds helm-css-scss helm-company helm-c-yasnippet helm-ag google-translate golden-ratio gnuplot gitignore-templates gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ gh-md fuzzy font-lock+ flycheck-pos-tip flycheck-package flycheck-elsa flycheck-bashate flx-ido fish-mode fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-textobj-line evil-surround evil-org evil-numbers evil-nerd-commenter evil-matchit evil-magit evil-lisp-state evil-lion evil-indent-plus evil-iedit-state evil-goggles evil-exchange evil-escape evil-ediff evil-cleverparens evil-args evil-anzu eval-sexp-fu eshell-z eshell-prompt-extras esh-help emmet-mode elisp-slime-nav editorconfig dumb-jump dotenv-mode diminish devdocs define-word dactyl-mode cython-mode cyberpunk-theme csv-mode company-web company-tern company-shell company-reftex company-auctex company-anaconda column-enforce-mode clean-aindent-mode centered-cursor-mode browse-at-remote blacken auto-yasnippet auto-highlight-symbol auto-compile atom-dark-theme aggressive-indent ace-link ace-jump-helm-line ac-ispell))
  '(pdf-view-midnight-colors '("#655370" . "#fbf8ef"))
+ '(sbt:program-name
+   "/Users/alagerberg/Library/Application Support/Coursier/bin//sbt")
  '(vc-annotate-background "#2B2B2B")
  '(vc-annotate-color-map
    '((20 . "#BC8383")

@@ -1,9 +1,9 @@
-#!/usr/bin/env bash
+#!/usr/bin/env fish
 
 set -e
 
 osascript - <<EOF
-tell application "emacs"
+tell application "/usr/local/bin/emacs"
     activate
 end tell
 EOF

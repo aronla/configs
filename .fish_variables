@@ -1,11 +1,45 @@
 set TERM xterm-256color
 
-set -g theme_title_use_abbreviated_path yes
-set -g fish_prompt_pwd_dir_length 1
-
 set -gx LC_ALL en_US.UTF-8
 set -gx LC_CTYPE en_US.UTF-8
 
 set -gx HSTR_CONFIG hicolor
 set -gx HISTFILE ~/.local/share/fish/hh.history
 
+set fzf_fd_opts --hidden --exclude=.git
+
+### PATHS
+### RUST
+set -gx PATH "$HOME/.cargo/bin" $PATH
+
+### Scala
+set -gx PATH "$HOME/Library/Application Support/Coursier/bin/" $PATH
+
+# RF
+set -gx PATH "$HOME/.cargo/bin" $PATH
+set -gx PATH /Users/alagerberg/work/RF/main/python/bin $PATH
+fish_add_path /usr/local/opt/node@14/bin
+set -gx RF_ROOT /Users/alagerberg/work/RF/main
+set -gx GOOGLE_APPLICATION_CREDENTIALS ~/.ssh/gcp/wired-rex-338108-1cbafdbe966f.json
+set -gx SHORELINE $RF_ROOT/tools/shoreline/
+set -gx PATH /Users/alagerberg/work/RF/shoreline/bin $RF_ROOT/python/bin $RF_ROOT/tools/rfmachine $RF_ROOT/bin $PATH
+
+### hydro prompt
+set -u hydro_color_git $fish_color_param
+
+### bobthefish
+set -g theme_title_use_abbreviated_path yes
+set -g theme_title_display_process no
+set -g theme_title_display_path no
+set -g theme_title_display_user no
+set -g fish_prompt_pwd_dir_length 2
+set -g theme_project_dir_length 2
+set -g theme_color_scheme solarized-dark
+
+### python
+# set -gx PYTHONBREAKPOINT "pudb.set_trace"
+set -gx PYTHONBREAKPOINT "ipdb.set_trace"
+set -gx JUPYTER_RUNTIME_DIR "/Users/alagerberg/.jupyter/runtime"
+
+### LATEX
+set -gx PATH /usr/local/texlive/2022basic/bin/universal-darwin/ $PATH

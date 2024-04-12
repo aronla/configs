@@ -1,15 +1,37 @@
+# MISC
 alias ls "ls -lhaG"
-alias ipython "python3 -m IPython"
-alias gitls "git log --decorate --graph --date-order --oneline"
-alias gitlst "gitls --pretty=format:'%h%x09%an%x09%ad%x09%s'"
+alias cat "bat"
 alias ctags "/usr/local/bin/ctags"
+alias k "kubectl"
+alias hh "hstr"
+alias mmdc "/Users/kmgc004/git_repos/node_modules/.bin/mmdc"
+alias fnd "fd"
+# alias zz "z -l | awk '{print \$2}'| fzf"
+
+# PYTHON
+alias ipython "python3 -m IPython"
+alias ap "activate_pyenv"
+
+# Folder shortcuts
+alias main "cd ~/work/RF/main/"
+alias bg "cd ~/work/RF/bageriet/"
+alias tmp "cd ~/tmp/"
+
+# GIT
+alias gitls "git log --decorate --graph --date-order --oneline --pretty=format:"%h%x09%an%x09%ad%x09%s" --date=format:'%Y-%m-%d %H:%M:%S'"
+alias gitlsa "git log --decorate --graph --date-order --oneline --pretty=format:'%h%x09%an%x09%ad%x09%s %d' --date=format:'%Y-%m-%d %H:%M:%S' --all"
+alias gitlst "gitlsa --pretty=format:'%h%x09%an%x09%ad%x09%s'"
+alias ga "gitlsa"
+
+# emacs
 alias em "emacsclient -c --no-wait --alternate-editor=''"
 alias emn "emacsclient -c -nw --alternate-editor=''"
+
+# docker
 alias d "docker"
 alias dl "docker ps -l -q"
 alias dc "docker-compose"
-alias k "kubectl"
-alias cat "bat"
 
-alias hh "hstr"
-alias mmdc "/Users/kmgc004/git_repos/node_modules/.bin/mmdc"
+# Recorded Future
+alias rfmachine "node /Users/alagerberg/work/RF/main/tools/rfmachine/rfmachine.js"
+
